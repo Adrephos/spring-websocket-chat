@@ -26,6 +26,7 @@ public class Interceptor extends HttpSessionHandshakeInterceptor {
   public boolean beforeHandshake(ServerHttpRequest request, ServerHttpResponse response, WebSocketHandler wsHandler,
       Map<String, Object> attributes) throws Exception {
     String query = request.getURI().getQuery();
+
     if (query != null && query.contains("token")) {
       String token = getQueryParamValue(query, "token");
 
@@ -34,6 +35,6 @@ public class Interceptor extends HttpSessionHandshakeInterceptor {
         return true;
       }
     }
-    return true;
+    return false;
   }
 }
