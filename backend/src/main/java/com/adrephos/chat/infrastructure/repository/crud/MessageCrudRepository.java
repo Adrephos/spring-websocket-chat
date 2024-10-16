@@ -9,5 +9,5 @@ import org.springframework.data.repository.CrudRepository;
 import com.adrephos.chat.infrastructure.repository.entity.MessageEntity;
 
 public interface MessageCrudRepository extends CrudRepository<MessageEntity, UUID> {
-  Optional<List<MessageEntity>> findByChatIdOrderBySentAtDesc(UUID chatId);
+  Optional<List<MessageEntity>> findByChatIdOrderBySentAtAsc(UUID chatId);
 }

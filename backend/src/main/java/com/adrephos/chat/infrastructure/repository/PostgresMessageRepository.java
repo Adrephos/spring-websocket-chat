@@ -34,7 +34,7 @@ public class PostgresMessageRepository implements MessageRepository {
 
   @Override
   public Optional<List<Message>> findByChatId(UUID chatId) {
-    return messageCrudRepository.findByChatIdOrderBySentAtDesc(chatId).map(mapper::toDomain);
+    return messageCrudRepository.findByChatIdOrderBySentAtAsc(chatId).map(mapper::toDomain);
   }
 
   @Override
