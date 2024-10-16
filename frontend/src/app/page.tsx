@@ -1,101 +1,223 @@
-import Image from "next/image";
+"use client"
+
+import { ChatItem } from "@/components/ChatItem";
+import { MessageItem } from "@/components/MessageItem";
+import { Notification } from "@/components/Notification";
+import ProtectedRoute from "@/components/ProtectedRoute";
+import { useAuth } from "@/context/AuthContext";
+import { chatsService } from "@/services/chatsService";
+import { SocketService } from "@/services/websocketService";
+import { Chat } from "@/types/chat";
+import { Message } from "@/types/messages";
+import { AxiosError } from "axios";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="https://nextjs.org/icons/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+  const [chats, setChats] = useState(Array<Chat>);
+  const [currentChat, setCurrentChat] = useState<Chat | null>(null);
+  const [currentChatId, setCurrentChatId] = useState("none");
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [inputMessage, setInputMessage] = useState("");
+  const messagesRef = useRef<HTMLDivElement>(null);
+  const [showNotification, setShowNotification] = useState(false);
+  const [socket, setSocket] = useState<WebSocket | null>(null);
+  const [from, setFrom] = useState("");
+  const [notificationMessage, setNotificationMessage] = useState("");
+  const [lastMessage, setLastMessage] = useState<Message | null>(null);
+  const { user, token, logout} = useAuth();
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="https://nextjs.org/icons/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  const handleShowNotification = () => {
+    console.log("showing notification");
+    if (!lastMessage) return;
+    setFrom(lastMessage.senderUsername);
+    setNotificationMessage(lastMessage.content);
+    setShowNotification(true);
+  };
+
+  const handleCloseNotification = () => {
+    setShowNotification(false);
+  };
+
+  const scrollToBottom = () => {
+    messagesRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  const receiveMessage = (message: Message) => {
+    if (currentChatId == message.chatId) {
+      setMessages((prevMessages) => [...prevMessages, message]);
+      setLastMessage(message);
+    } else {
+      setLastMessage(message);
+      handleShowNotification();
+    }
+  };
+
+  const deleteMessage = (message: Message) => {
+    setMessages(messages.filter((m) => m.id !== message.id));
+  }
+
+  const editMessage = (message: Message) => {
+    setMessages(messages.map((m) => m.id === message.id ? message : m));
+  }
+
+  useEffect(() => {
+    if (token && currentChatId) {
+      const socketCleanup = SocketService(
+        token,
+        setSocket,
+        receiveMessage,
+        deleteMessage,
+        editMessage
+      );
+
+      return () => {
+        socketCleanup();
+      };
+    }
+  }, [token, currentChatId]);
+
+  const sendMessage = () => {
+    if (socket && inputMessage && currentChat && user) {
+      const receiver = currentChat.firstUsername === user.username ?
+        currentChat.secondUsername : currentChat?.firstUsername;
+
+      const messageDTO = JSON.stringify({
+        content: inputMessage,
+        senderUsername: user.username,
+        receiverUsername: receiver,
+      });
+
+      socket.send(`SEND_MESSAGE:${messageDTO}`);
+      setInputMessage('');
+    }
+  };
+
+  useEffect(() => {
+    const getChats = async () => {
+      try {
+        const res = await chatsService.getChats(user?.username || "");
+        setChats(res.chats);
+      } catch (error) {
+        console.error(error);
+      } finally {
+        console.log("Chats fetched");
+      }
+    }
+    if (user) {
+      getChats()
+    }
+  }, [user, showNotification]);
+
+  const createChat = useCallback(async (receiver: string) => {
+    chatsService.createChat({
+      firstUsername: user?.username || "",
+      secondUsername: receiver,
+    }).then((res) => {
+      setCurrentChat(res);
+      setCurrentChatId(res.id);
+      if (chats.find((chat) => chat.id === res.id)) return;
+      setChats((prevChats) => [...prevChats, res]);
+    }).catch((err: AxiosError) => {
+      if (err.response?.status === 404) {
+        alert("User not found");
+      } else {
+        alert("Could not create chat");
+      }
+    })
+  }, [user]);
+
+  useEffect(() => {
+    const getMessages = async () => {
+      if (currentChat) {
+        const res = await chatsService.getChatMessages(currentChat.id)
+        setMessages(res.messages)
+      }
+    }
+    getMessages()
+  }, [currentChat]);
+
+  return (
+    <ProtectedRoute>
+      <Notification message={notificationMessage} from={from} show={showNotification} onClose={handleCloseNotification} />
+      <div className="flex flex-row justify-between h-screen p-2">
+        {/* Chat list */}
+        <div className="flex flex-col gap-3 w-[20%] text-white justify-between">
+          <div className="flex flex-col gap-3">
+            <div className="self-center">
+              {user && <h1 className="text-white text-2xl">Welcome, {user.username}</h1>}
+            </div>
+            {chats.map((chat, idx) => (
+              <ChatItem
+                key={idx}
+                chat={chat}
+                user={user}
+                onClick={() => {
+                  setCurrentChatId(chat.id);
+                  setCurrentChat(chat);
+                  setSocket(null);
+                }}
+              />))}
+          </div>
+          <div className="flex flex-wrap gap-2 self-center">
+            <button
+              className="bg-neutral hover:bg-neutral-500 p-2 border border-white rounded"
+              onClick={() => {
+                const receiver = prompt("Enter the username of the user you want to chat with");
+                if (receiver) {
+                  createChat(receiver);
+                }
+              }}
+            >Add a new chat</button>
+            <button
+              className="bg-neutral hover:bg-neutral-500 p-2 border border-white rounded"
+              onClick={() => {logout()}}
+            >Log out</button>
+          </div>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+        {/* Chat UI*/}
+        {currentChat && (
+          <div className="flex flex-col gap-3 text-white w-[75%] justify-between">
+            {/* Chat title */}
+            <div className="h-[5%] border border-white flex flex-row items-center justify-center font-bold w-full">
+              {currentChat && (
+                currentChat.firstUsername === user?.username ?
+                  currentChat.secondUsername :
+                  currentChat.firstUsername)
+              }
+            </div>
+            {/* Messages */}
+            <div className="flex flex-col gap-2 overflow-y-scroll h-[85%]">
+              {currentChat && messages.map((message) => (
+                <MessageItem key={message.id} message={message} user={user} />
+              ))}
+              <div ref={messagesRef} />
+            </div>
+            {/* Input */}
+            <div className="h-[7%] border border-white flex flex-row">
+              <input
+                type="text"
+                className="w-[90%] p-2 bg-black text-white h-full focus:outline-none"
+                placeholder="Type a message..."
+                value={inputMessage}
+                onChange={(e) => setInputMessage(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') sendMessage();
+                }}
+              />
+              {/* Send button */}
+              <button
+                onClick={sendMessage}
+                className="w-[10%] bg-neutral hover:bg-neutral-500"
+              >
+                Send</button>
+            </div>
+          </div>
+        )}
+      </div>
+    </ProtectedRoute>
   );
 }
