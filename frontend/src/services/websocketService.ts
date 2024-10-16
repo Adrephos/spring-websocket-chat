@@ -26,8 +26,8 @@ export const SocketService = (
           const message = event.data.replace('DELETE_MESSAGE:', '');
           deleteMessage(message);
           return;
-        } else if (event.data.startsWith('EDIT_MESSAGE:')) {
-          const message = event.data.replace('EDIT_MESSAGE:', '');
+        } else if (event.data.startsWith('UPDATE_MESSAGE')) {
+          const message = event.data.replace('UPDATE_MESSAGE:', '');
           const messageObj = JSON.parse(message);
           editMessage(messageObj);
           return;

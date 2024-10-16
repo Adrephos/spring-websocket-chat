@@ -11,6 +11,8 @@ import { Chat } from "@/types/chat";
 import { Message } from "@/types/messages";
 import { AxiosError } from "axios";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { PlusIcon, LogoutIcon, SendIcon } from "../components/Icons"
+import { Tooltip } from 'react-tooltip'
 
 export default function Home() {
   const [chats, setChats] = useState(Array<Chat>);
@@ -24,7 +26,7 @@ export default function Home() {
   const [from, setFrom] = useState("");
   const [notificationMessage, setNotificationMessage] = useState("");
   const [lastMessage, setLastMessage] = useState<Message | null>(null);
-  const { user, token, logout} = useAuth();
+  const { user, token, logout } = useAuth();
 
   const handleShowNotification = () => {
     console.log("showing notification");
@@ -56,12 +58,13 @@ export default function Home() {
     }
   };
 
-  const deleteMessage = (message: Message) => {
-    setMessages(messages.filter((m) => m.id !== message.id));
+  const deleteMessage = (id: string) => {
+    setMessages((prevMessages) => prevMessages.filter((m) => m.id !== id));
   }
 
   const editMessage = (message: Message) => {
-    setMessages(messages.map((m) => m.id === message.id ? message : m));
+    console.log("Editing message", message);
+    setMessages((prevMessages) => prevMessages.map((m) => m.id === message.id ? message : m));
   }
 
   useEffect(() => {
@@ -93,6 +96,23 @@ export default function Home() {
 
       socket.send(`SEND_MESSAGE:${messageDTO}`);
       setInputMessage('');
+    }
+  };
+
+  const sendUpdateMessage = (id: string, content: string) => {
+    if (socket && currentChat && user) {
+      const updateMessageDTO = JSON.stringify({
+        id: id,
+        content: content,
+      });
+
+      socket.send(`UPDATE_MESSAGE:${updateMessageDTO}`);
+    }
+  };
+
+  const sendDeleteMessage = (id: string) => {
+    if (socket && currentChat && user) {
+      socket.send(`DELETE_MESSAGE:${id}`);
     }
   };
 
@@ -165,17 +185,27 @@ export default function Home() {
           <div className="flex flex-wrap gap-2 self-center">
             <button
               className="bg-neutral hover:bg-neutral-500 p-2 border border-white rounded"
+              data-tooltip-id="new-chat"
+              data-tooltip-content="New chat"
               onClick={() => {
                 const receiver = prompt("Enter the username of the user you want to chat with");
                 if (receiver) {
                   createChat(receiver);
                 }
               }}
-            >Add a new chat</button>
+            >
+              <PlusIcon />
+            </button>
+            <Tooltip id="new-chat"/>
             <button
               className="bg-neutral hover:bg-neutral-500 p-2 border border-white rounded"
-              onClick={() => {logout()}}
-            >Log out</button>
+              data-tooltip-id="logout"
+              data-tooltip-content="Log out"
+              onClick={() => { logout() }}
+            >
+              <LogoutIcon />
+            </button>
+            <Tooltip id="logout"/>
           </div>
         </div>
         {/* Chat UI*/}
@@ -192,12 +222,17 @@ export default function Home() {
             {/* Messages */}
             <div className="flex flex-col gap-2 overflow-y-scroll h-[85%]">
               {currentChat && messages.map((message) => (
-                <MessageItem key={message.id} message={message} user={user} />
+                <MessageItem
+                  key={message.id}
+                  updateMessage={sendUpdateMessage}
+                  deleteMessage={sendDeleteMessage}
+                  message={message}
+                  user={user} />
               ))}
               <div ref={messagesRef} />
             </div>
             {/* Input */}
-            <div className="h-[7%] border border-white flex flex-row">
+            <div className="h-[7%] border border-white flex flex-row justify-between">
               <input
                 type="text"
                 className="w-[90%] p-2 bg-black text-white h-full focus:outline-none"
@@ -211,9 +246,10 @@ export default function Home() {
               {/* Send button */}
               <button
                 onClick={sendMessage}
-                className="w-[10%] bg-neutral hover:bg-neutral-500"
+                className="w-fit bg-neutral hover:bg-neutral-500 p-4"
               >
-                Send</button>
+                <SendIcon />
+              </button>
             </div>
           </div>
         )}
