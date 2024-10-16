@@ -25,16 +25,7 @@ export default function Home() {
   const [socket, setSocket] = useState<WebSocket | null>(null);
   const [from, setFrom] = useState("");
   const [notificationMessage, setNotificationMessage] = useState("");
-  const [lastMessage, setLastMessage] = useState<Message | null>(null);
   const { user, token, logout } = useAuth();
-
-  const handleShowNotification = () => {
-    console.log("showing notification");
-    if (!lastMessage) return;
-    setFrom(lastMessage.senderUsername);
-    setNotificationMessage(lastMessage.content);
-    setShowNotification(true);
-  };
 
   const handleCloseNotification = () => {
     setShowNotification(false);
@@ -51,10 +42,10 @@ export default function Home() {
   const receiveMessage = (message: Message) => {
     if (currentChatId == message.chatId) {
       setMessages((prevMessages) => [...prevMessages, message]);
-      setLastMessage(message);
     } else {
-      setLastMessage(message);
-      handleShowNotification();
+      setFrom(message.senderUsername);
+      setNotificationMessage(message.content);
+      setShowNotification(true);
     }
   };
 
@@ -196,7 +187,7 @@ export default function Home() {
             >
               <PlusIcon />
             </button>
-            <Tooltip id="new-chat"/>
+            <Tooltip id="new-chat" />
             <button
               className="bg-neutral hover:bg-neutral-500 p-2 border border-white rounded"
               data-tooltip-id="logout"
@@ -205,7 +196,7 @@ export default function Home() {
             >
               <LogoutIcon />
             </button>
-            <Tooltip id="logout"/>
+            <Tooltip id="logout" />
           </div>
         </div>
         {/* Chat UI*/}
