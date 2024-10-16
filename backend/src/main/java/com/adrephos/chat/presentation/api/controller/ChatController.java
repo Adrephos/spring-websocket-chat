@@ -17,9 +17,10 @@ import org.springframework.web.bind.annotation.RestController;
 import com.adrephos.chat.application.CreateChat;
 import com.adrephos.chat.application.GetChatMessages;
 import com.adrephos.chat.application.GetUserChats;
+import com.adrephos.chat.application.dto.ChatsDTO;
 import com.adrephos.chat.application.dto.CreateChatDTO;
+import com.adrephos.chat.application.dto.MessagesDTO;
 import com.adrephos.chat.domain.Chat;
-import com.adrephos.chat.domain.Message;
 
 @RestController
 @RequestMapping("/chats")
@@ -39,21 +40,21 @@ public class ChatController {
     try {
       return new ResponseEntity<>(createChat.run(dto), HttpStatus.CREATED);
     } catch (Exception e) {
-      return new ResponseEntity<>(HttpStatus.CONFLICT);
+      return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
   }
 
   @GetMapping("/{username}")
-  public ResponseEntity<List<Chat>> getUserChats(@PathVariable String username) {
+  public ResponseEntity<ChatsDTO> getUserChats(@PathVariable String username) {
     return getUserChats.run(username)
-        .map(chats -> new ResponseEntity<>(chats, HttpStatus.OK))
-        .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+        .map(chats -> new ResponseEntity<>(new ChatsDTO(chats), HttpStatus.OK))
+        .orElse(new ResponseEntity<>(new ChatsDTO(List.of()), HttpStatus.OK));
   }
 
-  @GetMapping("/messages/{id}")
-  public ResponseEntity<List<Message>> getChatMessages(@PathVariable UUID id) {
+  @GetMapping("/{id}/messages")
+  public ResponseEntity<MessagesDTO> getChatMessages(@PathVariable UUID id) {
     return getChatMessages.run(id)
-        .map(messages -> new ResponseEntity<>(messages, HttpStatus.OK))
-        .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+        .map(messages -> new ResponseEntity<>(new MessagesDTO(messages), HttpStatus.OK))
+        .orElse(new ResponseEntity<>(new MessagesDTO(List.of()), HttpStatus.OK));
   }
 }
