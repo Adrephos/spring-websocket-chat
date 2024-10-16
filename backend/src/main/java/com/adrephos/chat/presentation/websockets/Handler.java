@@ -1,5 +1,7 @@
 package com.adrephos.chat.presentation.websockets;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -22,6 +24,9 @@ import com.adrephos.chat.domain.repository.ChatRepository;
 import com.adrephos.chat.domain.repository.MessageRepository;
 import com.adrephos.chat.presentation.config.JwtUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 
 @Component
 public class Handler extends TextWebSocketHandler {
@@ -67,6 +72,7 @@ public class Handler extends TextWebSocketHandler {
     if (username != null) {
       sessions.remove(username);
     }
+    System.out.println("Connection closed");
   }
 
   @Override
@@ -80,6 +86,7 @@ public class Handler extends TextWebSocketHandler {
     } else {
       session.close(CloseStatus.NOT_ACCEPTABLE);
     }
+    System.out.println("Connection established");
   }
 
   private void sendToUsers(String firstUsername, String secondUsername,
@@ -88,20 +95,31 @@ public class Handler extends TextWebSocketHandler {
     WebSocketSession secondSession = sessions.get(secondUsername);
 
     if (firstSession != null) {
-      sendToSession(firstSession, MessageType.DELETE_MESSAGE, content);
+      sendToSession(firstSession, type, content);
+      System.out.println("Sending to first session");
     }
     if (secondSession != null) {
-      sendToSession(secondSession, MessageType.DELETE_MESSAGE, content);
+      sendToSession(secondSession, type, content);
+      System.out.println("Sending to second session");
     }
   }
 
   private void sendMessage(WebSocketSession session, String content) {
     try {
-      CreateMessageDTO dto = objectMapper.readValue(content, CreateMessageDTO.class);
-      sendToUsers(dto.getSenderUsername(), dto.getReceiverUsername(),
-          MessageType.RECEIVE_MESSAGE, content);
+      JavaTimeModule javaTimeModule = new JavaTimeModule();
+      DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSSSS");
+      LocalDateTimeSerializer serializer = new LocalDateTimeSerializer(formatter);
+      javaTimeModule.addSerializer(LocalDateTime.class, serializer);
+      objectMapper.registerModule(javaTimeModule);
+      objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 
-      createMessage.run(dto);
+      CreateMessageDTO dto = objectMapper.readValue(content, CreateMessageDTO.class);
+      Message message = createMessage.run(dto);
+
+      String messageStr = objectMapper.writeValueAsString(message);
+
+      sendToUsers(message.getSenderUsername(), message.getReceiverUsername(),
+          MessageType.RECEIVE_MESSAGE, messageStr);
     } catch (Exception e) {
       throw new RuntimeException("Failed to parse message", e);
     }
