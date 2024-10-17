@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 export default function Signup() {
-  const { isLoadingAuth, authenticate, user, token } = useAuth();
+  const { isLoadingAuth, authenticate, setIsLoggedIn, checkIfLoggedIn } = useAuth();
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -17,15 +17,15 @@ export default function Signup() {
 
   const runAuth = async (e: FormEvent) => {
     e.preventDefault();
-    await authenticate("signup", {
+    authenticate("signup", {
       username: username,
       password: password,
       email: email,
+    }).then(() => {
+      checkIfLoggedIn();
+      window.location.href = "/";
     });
-
-    console.log("Signing up...");
-    router.push("/");
-  };
+  }
 
   const validateEmail = (email: string): boolean => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;

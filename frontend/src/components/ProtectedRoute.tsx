@@ -11,13 +11,12 @@ export default function ProtectedRoute({ children }: { children: ReactNode }) {
   useEffect(() => setIsClient(true), [])
 
   console.log("ProtectedRoute", isLoggedIn);
-
   if (isLoggedIn) {
     return children;
   }
 
   if (isLoadingAuth) {
-    return <div>Loading...</div>
+    return <div className="text-white">Loading...</div>
   }
 
   if (isClient) {

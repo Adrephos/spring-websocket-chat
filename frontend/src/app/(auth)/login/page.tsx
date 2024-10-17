@@ -6,29 +6,22 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 export default function Login() {
-  const { isLoadingAuth, authenticate, isLoggedIn } = useAuth();
+  const { isLoadingAuth, authenticate, isLoggedIn, setIsLoggedIn, checkIfLoggedIn } = useAuth();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const router = useRouter();
 
   const isButtonDisabled = isLoadingAuth || username === "" || password === "";
 
-  const goHome = useCallback(() => {
-    if (isLoggedIn) {
-      console.log("Going home...");
-      router.push("/");
-    }
-  }, [isLoggedIn]);
-
   const runAuth = async (e: FormEvent) => {
     e.preventDefault();
-    await authenticate("login", {
+    authenticate("login", {
       username: username,
       password: password
+    }).then(() => {
+      checkIfLoggedIn();
+      window.location.href = "/";
     });
-    console.log("Logging in...");
-
-    goHome();
   }
 
   const handleUsername = (e: ChangeEvent<HTMLInputElement>) => {

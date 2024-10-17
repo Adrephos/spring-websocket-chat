@@ -9,6 +9,8 @@ type authData = LoginCredentials | SignupCredentials;
 interface AuthContextProps {
   isLoggedIn: boolean;
   isLoadingAuth: boolean;
+  setIsLoggedIn: (value: boolean) => void;
+  checkIfLoggedIn: () => Promise<void>;
   authenticate: (
     authMode: "login" | "signup",
     data: authData
@@ -39,20 +41,20 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
   }, [user, token])
 
 
-  useEffect(() => {
-    async function checkIfLoggedIn() {
-      const storedToken = localStorage.getItem("token");
-      const storedUser = localStorage.getItem("user")
+  async function checkIfLoggedIn() {
+    const storedToken = localStorage.getItem("token");
+    const storedUser = localStorage.getItem("user")
 
-      if (storedToken && storedUser) {
-        setUser(JSON.parse(storedUser));
-        setToken(storedToken);
-        setIsLoggedIn(true);
-      } else {
-        setIsLoggedIn(false);
-      }
+    if (storedToken && storedUser) {
+      setUser(JSON.parse(storedUser));
+      setToken(storedToken);
+      setIsLoggedIn(true);
+    } else {
+      setIsLoggedIn(false);
     }
+  }
 
+  useEffect(() => {
     checkIfLoggedIn();
   }, [])
 
@@ -98,6 +100,8 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
       value={{
         isLoadingAuth,
         isLoggedIn,
+        checkIfLoggedIn,
+        setIsLoggedIn,
         authenticate,
         logout,
         user,

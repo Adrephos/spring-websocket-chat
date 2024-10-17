@@ -157,21 +157,29 @@ export default function Home() {
       <div className="flex flex-row justify-between h-screen">
         {/* Chat list */}
         <div className="flex flex-col gap-3 w-[25%] p-2 text-white justify-between border-r border-white">
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-3 h-full">
             <div className="self-center my-4">
               {user && <h1 className="text-white text-2xl">Welcome, <strong>{user.username}!</strong></h1>}
             </div>
-            {chats.map((chat, idx) => (
-              <ChatItem
-                key={idx}
-                chat={chat}
-                user={user}
-                onClick={() => {
-                  setCurrentChatId(chat.id);
-                  setCurrentChat(chat);
-                  setSocket(null);
-                }}
-              />))}
+            <div
+              className="overflow-y-scroll flex flex-col gap-3 scroll-p-2 h-full"
+              style={{
+                scrollbarWidth: 'thin',
+                scrollbarColor: 'gray black',
+              }}
+            >
+              {chats.map((chat, idx) => (
+                <ChatItem
+                  key={idx}
+                  chat={chat}
+                  user={user}
+                  onClick={() => {
+                    setCurrentChatId(chat.id);
+                    setCurrentChat(chat);
+                    setSocket(null);
+                  }}
+                />))}
+            </div>
           </div>
           <div className="flex flex-wrap gap-2 self-center">
             <button
@@ -215,7 +223,7 @@ export default function Home() {
               className="flex flex-col gap-2 overflow-y-scroll h-[85%]"
               style={{
                 scrollbarWidth: 'thin',
-                scrollbarColor: 'white black',
+                scrollbarColor: 'gray black',
               }}
             >
               {currentChat && messages.map((message) => (
