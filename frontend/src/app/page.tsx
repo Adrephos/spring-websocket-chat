@@ -159,8 +159,9 @@ export default function Home() {
         <div className="flex flex-col gap-3 w-[25%] p-2 text-white justify-between border-r border-white">
           <div className="flex flex-col gap-3 h-full">
             <div className="self-center my-4">
-              {user && <h1 className="text-white text-2xl">Welcome, <strong>{user.username}!</strong></h1>}
+              {user && <h1 className="text-white text-3xl">Welcome, <strong>{user.username}!</strong></h1>}
             </div>
+            <span className="text-2xl text-gray-300">Chats</span>
             <div
               className="overflow-y-scroll flex flex-col gap-3 scroll-p-2 h-full"
               style={{
