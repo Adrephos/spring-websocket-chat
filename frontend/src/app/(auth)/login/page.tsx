@@ -1,26 +1,34 @@
 "use client"
 
-import { ChangeEvent, FormEvent, useEffect, useState } from "react";
+import { ChangeEvent, FormEvent, useCallback, useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 export default function Login() {
-  const { isLoadingAuth, authenticate } = useAuth();
+  const { isLoadingAuth, authenticate, isLoggedIn } = useAuth();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const router = useRouter();
 
   const isButtonDisabled = isLoadingAuth || username === "" || password === "";
 
+  const goHome = useCallback(() => {
+    if (isLoggedIn) {
+      console.log("Going home...");
+      router.push("/");
+    }
+  }, [isLoggedIn]);
+
   const runAuth = async (e: FormEvent) => {
     e.preventDefault();
-    authenticate("login", {
+    await authenticate("login", {
       username: username,
       password: password
-    }).then(() => {
-      router.push("/");
     });
+    console.log("Logging in...");
+
+    goHome();
   }
 
   const handleUsername = (e: ChangeEvent<HTMLInputElement>) => {

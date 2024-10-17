@@ -1,3 +1,5 @@
+"use client"
+
 import { LoginCredentials, SignupCredentials, userService } from "@/services/userService";
 import { User } from "@/types/user";
 import { PropsWithChildren, createContext, useContext, useEffect, useState } from "react";
@@ -75,7 +77,10 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
         setUser(user);
         setIsLoggedIn(true);
       }
-    } catch (e) {
+    } catch (e: any) {
+      if (e.status == 403) {
+        alert("Invalid credentials");
+      }
       setIsLoggedIn(false);
     } finally {
       setIsLoadingAuth(false);

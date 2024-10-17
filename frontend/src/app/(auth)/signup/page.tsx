@@ -17,13 +17,14 @@ export default function Signup() {
 
   const runAuth = async (e: FormEvent) => {
     e.preventDefault();
-    authenticate("signup", {
+    await authenticate("signup", {
       username: username,
       password: password,
       email: email,
-    }).then(() => {
-      router.push("/");
-    })
+    });
+
+    console.log("Signing up...");
+    router.push("/");
   };
 
   const validateEmail = (email: string): boolean => {

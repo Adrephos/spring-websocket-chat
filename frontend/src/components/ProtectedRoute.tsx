@@ -10,9 +10,16 @@ export default function ProtectedRoute({ children }: { children: ReactNode }) {
 
   useEffect(() => setIsClient(true), [])
 
+  console.log("ProtectedRoute", isLoggedIn);
+
+  if (isLoggedIn) {
+    return children;
+  }
+
   if (isLoadingAuth) {
     return <div>Loading...</div>
   }
+
   if (isClient) {
     if (
       !isLoggedIn &&
@@ -24,5 +31,4 @@ export default function ProtectedRoute({ children }: { children: ReactNode }) {
       redirect("/login");
     }
   }
-  return children;
 }

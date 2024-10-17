@@ -10,10 +10,9 @@ import { SocketService } from "@/services/websocketService";
 import { Chat } from "@/types/chat";
 import { Message } from "@/types/messages";
 import { AxiosError } from "axios";
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { PlusIcon, LogoutIcon, SendIcon } from "../components/Icons"
 import { Tooltip } from 'react-tooltip'
-import { redirect } from "next/navigation";
 
 export default function Home() {
   const [chats, setChats] = useState(Array<Chat>);
