@@ -31,6 +31,9 @@ import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 @Component
 public class Handler extends TextWebSocketHandler {
   private ObjectMapper objectMapper = new ObjectMapper();
+  private JavaTimeModule javaTimeModule = new JavaTimeModule();
+  private DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSSSS");
+  private LocalDateTimeSerializer serializer = new LocalDateTimeSerializer(formatter);
 
   @Autowired
   JwtUtil jwtUtil;
@@ -77,6 +80,10 @@ public class Handler extends TextWebSocketHandler {
 
   @Override
   public void afterConnectionEstablished(WebSocketSession session) throws Exception {
+    javaTimeModule.addSerializer(LocalDateTime.class, serializer);
+    objectMapper.registerModule(javaTimeModule);
+    objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+
     String token = session.getAttributes().get("token").toString();
     String username = jwtUtil.getUsername(token);
 
@@ -106,13 +113,6 @@ public class Handler extends TextWebSocketHandler {
 
   private void sendMessage(WebSocketSession session, String content) {
     try {
-      JavaTimeModule javaTimeModule = new JavaTimeModule();
-      DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSSSS");
-      LocalDateTimeSerializer serializer = new LocalDateTimeSerializer(formatter);
-      javaTimeModule.addSerializer(LocalDateTime.class, serializer);
-      objectMapper.registerModule(javaTimeModule);
-      objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-
       CreateMessageDTO dto = objectMapper.readValue(content, CreateMessageDTO.class);
       Message message = createMessage.run(dto);
 
