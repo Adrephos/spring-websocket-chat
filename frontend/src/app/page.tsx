@@ -10,9 +10,10 @@ import { SocketService } from "@/services/websocketService";
 import { Chat } from "@/types/chat";
 import { Message } from "@/types/messages";
 import { AxiosError } from "axios";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { PlusIcon, LogoutIcon, SendIcon } from "../components/Icons"
 import { Tooltip } from 'react-tooltip'
+import { redirect } from "next/navigation";
 
 export default function Home() {
   const [chats, setChats] = useState(Array<Chat>);
@@ -247,6 +248,13 @@ export default function Home() {
               >
                 <SendIcon />
               </button>
+            </div>
+          </div>
+        )}
+        {!currentChat && (
+          <div className="flex flex-col gap-3 text-white w-[75%] justify-between px-2">
+            <div className="h-screen flex items-center justify-center font-bold w-full">
+              Select a chat to start messaging
             </div>
           </div>
         )}
