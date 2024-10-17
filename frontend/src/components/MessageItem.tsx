@@ -25,11 +25,11 @@ export const MessageItem = (
     message_align = " self-end";
   }
 
-  let date_style = "flex justify-between w-ful self-end";
+  let date_style = "flex justify-between w-ful";
   if (message.senderUsername === user?.username) {
-    date_style += " self-start";
-  } else {
     date_style += " self-end";
+  } else {
+    date_style += " self-start";
   }
 
   const formattedDate = (messageDate: string) => {
