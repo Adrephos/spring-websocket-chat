@@ -1,15 +1,13 @@
 "use client"
 
-import { ChangeEvent, FormEvent, useCallback, useEffect, useState } from "react";
+import { ChangeEvent, FormEvent, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 
 export default function Login() {
-  const { isLoadingAuth, authenticate, isLoggedIn, setIsLoggedIn, checkIfLoggedIn } = useAuth();
+  const { isLoadingAuth, authenticate, checkIfLoggedIn } = useAuth();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const router = useRouter();
 
   const isButtonDisabled = isLoadingAuth || username === "" || password === "";
 

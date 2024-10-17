@@ -1,5 +1,4 @@
 import { Chat, ChatsResponse } from "@/types/chat"
-import { AuthResponse, User } from "../types/user"
 import { Api } from "./apiService"
 import { MessagesResponse } from "@/types/messages"
 

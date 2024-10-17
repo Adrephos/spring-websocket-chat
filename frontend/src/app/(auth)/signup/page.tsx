@@ -1,19 +1,17 @@
 "use client"
 
-import { ChangeEvent, FormEvent, useEffect, useState } from "react";
+import { ChangeEvent, FormEvent, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 
 export default function Signup() {
-  const { isLoadingAuth, authenticate, setIsLoggedIn, checkIfLoggedIn } = useAuth();
+  const { isLoadingAuth, authenticate, checkIfLoggedIn } = useAuth();
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [repeatPassword, setRepeatPassword] = useState("");
   const [passwordError, setPasswordError] = useState("");
   const [emailError, setEmailError] = useState("");
-  const router = useRouter();
 
   const runAuth = async (e: FormEvent) => {
     e.preventDefault();
