@@ -154,12 +154,12 @@ export default function Home() {
   return (
     <ProtectedRoute>
       <Notification message={notificationMessage} from={from} show={showNotification} onClose={handleCloseNotification} />
-      <div className="flex flex-row justify-between h-screen p-2">
+      <div className="flex flex-row justify-between h-screen">
         {/* Chat list */}
-        <div className="flex flex-col gap-3 w-[20%] text-white justify-between">
+        <div className="flex flex-col gap-3 w-[25%] p-2 text-white justify-between border-r border-white">
           <div className="flex flex-col gap-3">
-            <div className="self-center">
-              {user && <h1 className="text-white text-2xl">Welcome, {user.username}</h1>}
+            <div className="self-center my-4">
+              {user && <h1 className="text-white text-2xl">Welcome, <strong>{user.username}!</strong></h1>}
             </div>
             {chats.map((chat, idx) => (
               <ChatItem
@@ -201,7 +201,7 @@ export default function Home() {
         </div>
         {/* Chat UI*/}
         {currentChat && (
-          <div className="flex flex-col gap-3 text-white w-[75%] justify-between">
+          <div className="flex flex-col gap-3 text-white w-[75%] justify-between px-2">
             {/* Chat title */}
             <div className="h-[5%] border border-white flex flex-row items-center justify-center font-bold w-full">
               {currentChat && (
@@ -211,7 +211,13 @@ export default function Home() {
               }
             </div>
             {/* Messages */}
-            <div className="flex flex-col gap-2 overflow-y-scroll h-[85%]">
+            <div
+              className="flex flex-col gap-2 overflow-y-scroll h-[85%]"
+              style={{
+                scrollbarWidth: 'thin',
+                scrollbarColor: 'white black',
+              }}
+            >
               {currentChat && messages.map((message) => (
                 <MessageItem
                   key={message.id}
