@@ -5,8 +5,11 @@ export const SocketService = (
   deleteMessage: Function,
   editMessage: Function
 ) => {
-  const url = `ws://localhost:8080/ws-chat?token=${token}`
+  const baseUrl = process.env.WS_URL;
+  console.log('Connecting to WebSocket', baseUrl);
+  const url = `${baseUrl}?token=${token}`
   const socket = new WebSocket(url);
+
   setSocket(socket);
 
   socket.onopen = () => {
