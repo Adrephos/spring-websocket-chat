@@ -112,8 +112,10 @@ export default function Home() {
       try {
         const res = await chatsService.getChats(user?.username || "");
         setChats(res.chats);
-      } catch (error) {
-        console.error(error);
+      } catch (error: any) {
+        if (error.status === 403) {
+          logout();
+        }
       } finally {
         console.log("Chats fetched");
       }
@@ -135,6 +137,8 @@ export default function Home() {
     }).catch((err: AxiosError) => {
       if (err.response?.status === 404) {
         alert("User not found");
+      } else if (err.response?.status === 403) {
+        logout();
       } else {
         alert("Could not create chat");
       }
@@ -143,9 +147,15 @@ export default function Home() {
 
   useEffect(() => {
     const getMessages = async () => {
-      if (currentChat) {
-        const res = await chatsService.getChatMessages(currentChat.id)
-        setMessages(res.messages)
+      try {
+        if (currentChat) {
+          const res = await chatsService.getChatMessages(currentChat.id)
+          setMessages(res.messages)
+        }
+      } catch (error: any) {
+        if (error.status === 403) {
+          logout();
+        }
       }
     }
     getMessages()
