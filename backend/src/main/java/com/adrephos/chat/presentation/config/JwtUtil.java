@@ -7,14 +7,20 @@ import com.auth0.jwt.exceptions.JWTVerificationException;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
 public class JwtUtil {
-  private static String SECRET_KEY = "secret";
+  private Algorithm algorithm;
 
-  private static Algorithm ALGORITHM = Algorithm.HMAC256(SECRET_KEY);
+  public JwtUtil() {
+    String secretKey = System.getenv("SECRET_KEY");
+    if (secretKey == null) {
+      secretKey = "secret";
+    }
+    System.out.println("secretKey: " + secretKey);
+    this.algorithm = Algorithm.HMAC256(secretKey);
+  }
 
   public String create(String username) {
     return JWT.create()
@@ -22,12 +28,12 @@ public class JwtUtil {
         .withIssuer("spring-boot-chat")
         .withIssuedAt(new Date())
         .withExpiresAt(new Date(System.currentTimeMillis() + TimeUnit.DAYS.toMillis(15)))
-        .sign(ALGORITHM);
+        .sign(algorithm);
   }
 
   public boolean isValid(String token) {
     try {
-      JWT.require(ALGORITHM).build().verify(token);
+      JWT.require(algorithm).build().verify(token);
       return true;
     } catch (JWTVerificationException e) {
       return false;
@@ -35,6 +41,6 @@ public class JwtUtil {
   }
 
   public String getUsername(String token) {
-    return JWT.require(ALGORITHM).build().verify(token).getSubject();
+    return JWT.require(algorithm).build().verify(token).getSubject();
   }
 }
