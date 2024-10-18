@@ -11,13 +11,6 @@ services:
     environment:
       - SECRET_KEY=la vida es bella pero sin ella
 
-  frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    ports:
-      - 3000:3000
-
   postgres:
     image: postgres:13
     container_name: postgres
