@@ -1,4 +1,23 @@
 services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - 8080:8080
+    depends_on:
+      - postgres
+    environment:
+      - SECRET_KEY=la vida es bella pero sin ella
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - 3000:3000
+
   postgres:
     image: postgres:13
     container_name: postgres
@@ -6,10 +25,11 @@ services:
     ports:
         - 5432:5432
     volumes:
-        - postgres-volume:/var/lib/posgresql/data
+        - postgres-volume:/var/lib/postgresql/data
     environment:
       - POSTGRES_USER=user
       - POSTGRES_PASSWORD=password
+
   pgadmin:
     image: dpage/pgadmin4
     container_name: pgadmin

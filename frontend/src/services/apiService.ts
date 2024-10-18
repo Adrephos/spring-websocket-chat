@@ -1,6 +1,6 @@
 import axios, { AxiosError, AxiosInstance, AxiosResponse } from "axios";
 
-const url = "http://localhost:8080";
+const url = process.env.API_URL
 
 export const Api: AxiosInstance = axios.create({ baseURL: url });
 
