@@ -20,7 +20,7 @@ export const Notification = ({
 
   return (
     <div
-      className={`flex flex-row justify-between bg-white text-black px-4 py-3 rounded fixed w-[30%] h-[5rem] bottom-16 left-5 shadow-lg z-50 transition-transform transform ${show ? 'translate-x-0' : 'translate-x-full'
+      className={`flex flex-row justify-between bg-white text-black px-4 py-3 rounded fixed w-[80%] md:w-[30%] h-[5rem] bottom-16 left-5 shadow-lg z-50 transition-transform transform ${show ? 'translate-x-0' : 'translate-x-full'
         }`}
       role="alert"
     >

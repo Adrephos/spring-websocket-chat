@@ -21,9 +21,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="h-full bg-black">
+    <html lang="en" className="bg-black">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased h-full`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased h-dvh`}
       >
         <AuthProvider>
           {children}

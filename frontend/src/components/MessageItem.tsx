@@ -50,7 +50,7 @@ export const MessageItem = (
 
   return (
     <div className={message_style + message_align}>
-      <div className={"p-4 w-fit rounded border border-white" + message_align}>
+      <div className={"p-4 w-fit max-w-full rounded border border-white" + message_align}>
         {isEditing ? (
           <div className="flex flex-col">
             <textarea
@@ -74,7 +74,7 @@ export const MessageItem = (
             </div>
           </div>
         ) : (
-          <p className="break-all">{message.content}</p>
+          <p className="break-words">{message.content}</p>
         )}
       </div>
 

@@ -11,7 +11,7 @@ import { Chat } from "@/types/chat";
 import { Message } from "@/types/messages";
 import { AxiosError } from "axios";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { PlusIcon, LogoutIcon, SendIcon } from "../components/Icons"
+import { PlusIcon, LogoutIcon, SendIcon, BackIcon } from "../components/Icons"
 import { Tooltip } from 'react-tooltip'
 
 export default function Home() {
@@ -26,6 +26,13 @@ export default function Home() {
   const [from, setFrom] = useState("");
   const [notificationMessage, setNotificationMessage] = useState("");
   const { user, token, logout } = useAuth();
+
+  let chatsStyle = "md:flex flex-col gap-3 text-white w-[100%] md:w-[75%] justify-between px-2 h-full"
+  chatsStyle += currentChat ? " flex" : " hidden"
+
+  let chatListStyle = "md:flex flex-col gap-3 w-[100%] h-full md:w-[25%] p-2 text-white justify-between md:border-r border-white diplay"
+  chatListStyle += currentChat ? " hidden" : " flex"
+
 
   const handleCloseNotification = () => {
     setShowNotification(false);
@@ -164,9 +171,9 @@ export default function Home() {
   return (
     <ProtectedRoute>
       <Notification message={notificationMessage} from={from} show={showNotification} onClose={handleCloseNotification} />
-      <div className="flex flex-row justify-between h-screen">
+      <div className="flex flex-row justify-between h-full">
         {/* Chat list */}
-        <div className="flex flex-col gap-3 w-[25%] p-2 text-white justify-between border-r border-white">
+        <div className={chatListStyle}>
           <div className="flex flex-col gap-3 h-full">
             <div className="self-center my-4">
               {user && <h1 className="text-white text-3xl">Welcome, <strong>{user.username}!</strong></h1>}
@@ -219,63 +226,76 @@ export default function Home() {
           </div>
         </div>
         {/* Chat UI*/}
-        {currentChat && (
-          <div className="flex flex-col gap-3 text-white w-[75%] justify-between px-2">
-            {/* Chat title */}
-            <div className="h-[5%] border border-white flex flex-row items-center justify-center font-bold w-full">
-              {currentChat && (
-                currentChat.firstUsername === user?.username ?
-                  currentChat.secondUsername :
-                  currentChat.firstUsername)
-              }
-            </div>
-            {/* Messages */}
-            <div
-              className="flex flex-col gap-2 overflow-y-scroll h-[85%]"
-              style={{
-                scrollbarWidth: 'thin',
-                scrollbarColor: 'gray black',
-              }}
-            >
-              {currentChat && messages.map((message) => (
-                <MessageItem
-                  key={message.id}
-                  updateMessage={sendUpdateMessage}
-                  deleteMessage={sendDeleteMessage}
-                  message={message}
-                  user={user} />
-              ))}
-              <div ref={messagesRef} />
-            </div>
-            {/* Input */}
-            <div className="h-[7%] border border-white flex flex-row justify-between">
-              <input
-                type="text"
-                className="w-[90%] p-2 bg-black text-white h-full focus:outline-none"
-                placeholder="Type a message..."
-                value={inputMessage}
-                onChange={(e) => setInputMessage(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') sendMessage();
+        <div className={chatsStyle}>
+          {currentChat && (
+            <div className="h-full flex flex-col justify-between">
+              {/* Chat title */}
+              <div className="md:h-[5%] h-10 border border-white flex flex-row items-center justify-center font-bold w-full">
+                <button
+                  onClick={() => {
+                    setCurrentChat(null);
+                    setCurrentChatId("none");
+                    setSocket(null);
+                    setMessages([]);
+                  }}
+                  className="hover:bg-neutral-500 h-full flex items-center justify-center md:hidden w-[10%] px-2"
+                >
+                  <BackIcon />
+                </button>
+                <div className="w-[90%] flex items-center justify-center md:w-full">
+                  {currentChat && (
+                    currentChat.firstUsername === user?.username ?
+                      currentChat.secondUsername :
+                      currentChat.firstUsername)
+                  }
+                </div>
+              </div>
+              {/* Messages */}
+              <div
+                className="flex flex-col gap-2 overflow-y-scroll h-[85%]"
+                style={{
+                  scrollbarWidth: 'thin',
+                  scrollbarColor: 'gray black',
                 }}
-              />
-              {/* Send button */}
-              <button
-                onClick={sendMessage}
-                className="w-fit bg-neutral hover:bg-neutral-500 p-4"
               >
-                <SendIcon />
-              </button>
+                {currentChat && messages.map((message) => (
+                  <MessageItem
+                    key={message.id}
+                    updateMessage={sendUpdateMessage}
+                    deleteMessage={sendDeleteMessage}
+                    message={message}
+                    user={user} />
+                ))}
+                <div ref={messagesRef} />
+              </div>
+              {/* Input */}
+              <div className="md:h-[7%] h-12 border border-white flex flex-row justify-between items-center">
+                <input
+                  type="text"
+                  className="w-[90%] px-2 bg-black text-white h-full focus:outline-none"
+                  placeholder="Type a message..."
+                  value={inputMessage}
+                  onChange={(e) => setInputMessage(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') sendMessage();
+                  }}
+                />
+                {/* Send button */}
+                <button
+                  onClick={sendMessage}
+                  className="w-fit bg-neutral hover:bg-neutral-500 p-2"
+                >
+                  <SendIcon />
+                </button>
+              </div>
             </div>
-          </div>
-        )}
-        {!currentChat && (
-          <div className="flex flex-col gap-3 text-white w-[75%] justify-between px-2">
-            <div className="h-screen flex items-center justify-center font-bold w-full">
+          )}
+          {!currentChat && (
+            <div className="h-full flex items-center justify-center font-bold w-full">
               Select a chat to start messaging
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </ProtectedRoute>
   );
