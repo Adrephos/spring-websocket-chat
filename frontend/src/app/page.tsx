@@ -238,7 +238,7 @@ export default function Home() {
                     setSocket(null);
                     setMessages([]);
                   }}
-                  className="hover:bg-neutral-500 h-full flex items-center justify-center md:hidden w-[10%] px-2"
+                  className="hover:bg-neutral-500 h-10 flex items-center justify-center md:hidden w-[10%] px-2 absolute right-0 left-0 mx-2"
                 >
                   <BackIcon />
                 </button>
